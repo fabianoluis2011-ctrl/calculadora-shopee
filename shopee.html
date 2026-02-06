@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Shopee</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .app-container {
+            background: white;
+            width: 100%;
+            max-width: 420px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: #ff5722; /* cor Shopee */
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .mode-switch {
+            display: flex;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: #f7f7f7;
+        }
+        .mode-btn.active {
+            background: #ff5722;
+            color: #fff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #555;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus {
+            border-color: #ff5722;
+            outline: none;
+        }
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+        .row .form-group {
+            flex: 1;
+        }
+        .btn-calc {
+            width: 100%;
+            background: #ff5722;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .btn-calc:hover {
+            background: #e64a19;
+        }
+        .result-box {
+            background: #e6fffa;
+            border: 1px solid #b2f5ea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+        .result-box.error {
+            background: #fff5f5;
+            border-color: #feb2b2;
+            color: #c53030;
+        }
+        .price-label {
+            font-size: 0.9rem;
+            color: #2c7a7b;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .price-value {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: #234e52;
+            margin: 10px 0;
+        }
+        .breakdown {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #666;
+        }
+        .breakdown-item.total {
+            font-weight: bold;
+            color: #000;
+            border-top: 1px dashed #ccc;
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+        .small-hint {
+            font-size: 0.75rem;
+            color: #777;
+            margin-top: -8px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <h1>Calculadora Shopee</h1>
+    </div>
+    <div class="content">
+
+        <!-- Troca de modo -->
+        <div class="mode-switch">
+            <div class="mode-btn active" id="modeDesejadoBtn" onclick="setMode('desejado')">
+                Calcular PREÇO (pelo lucro desejado)
+            </div>
+            <div class="mode-btn" id="modeLiquidoBtn" onclick="setMode('liquido')">
+                Calcular LUCRO (pelo preço atual)
+            </div>
+        </div>
+
+        <!-- Config de comissão Shopee -->
+        <div class="form-group">
+            <label>Comissão Shopee (%)</label>
+            <select id="tipoComissao">
+                <option value="0.14">Padrão 14% (sem Frete Grátis)</option>
+                <option value="0.20">Com Frete Grátis 20%</option>
+            </select>
+            <div class="small-hint">Valores típicos: 14% padrão, 20% com Programa de Frete Grátis [web:30][web:32][web:38].</div>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label>Taxa Fixa por Item (R$)</label>
+                <input type="number" id="taxaFixa" value="4" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Imposto NF (%)</label>
+                <input type="number" id="imposto" placeholder="Ex: 4" value="4">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Ads / Marketing (%)</label>
+            <input type="number" id="ads" placeholder="Ex: 10" value="0">
+        </div>
+
+        <div class="form-group">
+            <label>Custo do Produto (R$)</label>
+            <input type="number" id="custo" placeholder="Ex: 20.00" step="0.01">
+        </div>
+
+        <!-- Modo 1: calcular preço ideal -->
+        <div id="blocoDesejado">
+            <div class="form-group">
+                <label>Lucro Líquido Desejado (R$)</label>
+                <input type="number" id="lucroDesejado" placeholder="Quanto quer ganhar limpo?" step="0.01">
+            </div>
+            <button class="btn-calc" onclick="calcularPreco()">CALCULAR PREÇO DE VENDA</button>
+        </div>
+
+        <!-- Modo 2: calcular lucro com preço atual -->
+        <div id="blocoLiquido" style="display:none;">
+            <div class="form-group">
+                <label>Preço que está vendendo (R$)</label>
+                <input type="number" id="precoAtual" placeholder="Preço atual na Shopee" step="0.01">
+            </div>
+            <button class="btn-calc" onclick="calcularLucro()">CALCULAR LUCRO LÍQUIDO</button>
+        </div>
+
+        <!-- Resultado -->
+        <div id="resultado" class="result-box"></div>
+    </div>
+</div>
+
+<script>
+    function formatMoney(value) {
+        return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function setMode(mode) {
+        const blocoDesejado = document.getElementById('blocoDesejado');
+        const blocoLiquido = document.getElementById('blocoLiquido');
+        const btnDesejado = document.getElementById('modeDesejadoBtn');
+        const btnLiquido = document.getElementById('modeLiquidoBtn');
+        const resultadoDiv = document.getElementById('resultado');
+        resultadoDiv.style.display = 'none';
+
+        if (mode === 'desejado') {
+            blocoDesejado.style.display = 'block';
+            blocoLiquido.style.display = 'none';
+            btnDesejado.classList.add('active');
+            btnLiquido.classList.remove('active');
+        } else {
+            blocoDesejado.style.display = 'none';
+            blocoLiquido.style.display = 'block';
+            btnDesejado.classList.remove('active');
+            btnLiquido.classList.add('active');
+        }
+    }
+
+    function getCommonValues() {
+        const comissao = parseFloat(document.getElementById('tipoComissao').value); // 0.14 ou 0.20
+        const taxaFixa = parseFloat(document.getElementById('taxaFixa').value) || 0;
+        const impostoPerc = (parseFloat(document.getElementById('imposto').value) || 0) / 100;
+        const adsPerc = (parseFloat(document.getElementById('ads').value) || 0) / 100;
+        const custo = parseFloat(document.getElementById('custo').value);
+
+        return { comissao, taxaFixa, impostoPerc, adsPerc, custo };
+    }
+
+    // Modo 1: dado lucro desejado → calcular preço
+    function calcularPreco() {
+        const { comissao, taxaFixa, impostoPerc, adsPerc, custo } = getCommonValues();
+        const lucroDesejado = parseFloat(document.getElementById('lucroDesejado').value);
+        const resultadoDiv = document.getElementById('resultado');
+
+        if (isNaN(custo) || isNaN(lucroDesejado)) {
+            alert("Preencha o Custo e o Lucro desejado.");
+            return;
+        }
+
+        const somaPercentuais = comissao + impostoPerc + adsPerc;
+        const divisor = 1 - somaPercentuais;
+
+        if (divisor <= 0) {
+            resultadoDiv.style.display = 'block';
+            resultadoDiv.className = 'result-box error';
+            resultadoDiv.innerHTML = "Erro: As taxas somam 100% ou mais. Ajuste comissão/impostos/ads.";
+            return;
+        }
+
+        // Preço = (Custo + Lucro + Taxa Fixa) / (1 - (Comissão + Imposto + Ads))
+        const precoVenda = (custo + lucroDesejado + taxaFixa) / divisor;
+        const valComissao = precoVenda * comissao;
+        const valImposto = precoVenda * impostoPerc;
+        const valAds = precoVenda * adsPerc;
+
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.className = 'result-box';
+        resultadoDiv.innerHTML = `
+            <div class="price-label">Você deve vender por:</div>
+            <div class="price-value">${formatMoney(precoVenda)}</div>
+            <div class="breakdown">
+                <div class="breakdown-item"><span>(-) Comissão Shopee (${(comissao*100)}%)</span> <span>${formatMoney(valComissao)}</span></div>
+                <div class="breakdown-item"><span>(-) Impostos (${(impostoPerc*100)}%)</span> <span>${formatMoney(valImposto)}</span></div>
+                <div class="breakdown-item"><span>(-) Ads / Marketing (${(adsPerc*100)}%)</span> <span>${formatMoney(valAds)}</span></div>
+                <div class="breakdown-item"><span>(-) Taxa Fixa por Item</span> <span>${formatMoney(taxaFixa)}</span></div>
+                <div class="breakdown-item"><span>(-) Custo Produto</span> <span>${formatMoney(custo)}</span></div>
+                <div class="breakdown-item total"><span>(=) Seu Lucro Líquido</span> <span>${formatMoney(lucroDesejado)}</span></div>
+            </div>
+        `;
+    }
+
+    // Modo 2: dado preço atual → calcular lucro líquido
+    function calcularLucro() {
+        const { comissao, taxaFixa, impostoPerc, adsPerc, custo } = getCommonValues();
+        const precoAtual = parseFloat(document.getElementById('precoAtual').value);
+        const resultadoDiv = document.getElementById('resultado');
+
+        if (isNaN(custo) || isNaN(precoAtual)) {
+            alert("Preencha o Custo e o Preço atual.");
+            return;
+        }
+
+        const valComissao = precoAtual * comissao;
+        const valImposto = precoAtual * impostoPerc;
+        const valAds = precoAtual * adsPerc;
+
+        // Lucro líquido = Preço - (comissão + imposto + ads + taxa fixa + custo)
+        const lucroLiquido = precoAtual - (valComissao + valImposto + valAds + taxaFixa + custo);
+
+        resultadoDiv.style.display = 'block';
+        resultadoDiv.className = 'result-box';
+        resultadoDiv.innerHTML = `
+            <div class="price-label">Seu lucro líquido neste preço é:</div>
+            <div class="price-value">${formatMoney(lucroLiquido)}</div>
+            <div class="breakdown">
+                <div class="breakdown-item"><span>Preço de Venda</span> <span>${formatMoney(precoAtual)}</span></div>
+                <div class="breakdown-item"><span>(-) Comissão Shopee (${(comissao*100)}%)</span> <span>${formatMoney(valComissao)}</span></div>
+                <div class="breakdown-item"><span>(-) Impostos (${(impostoPerc*100)}%)</span> <span>${formatMoney(valImposto)}</span></div>
+                <div class="breakdown-item"><span>(-) Ads / Marketing (${(adsPerc*100)}%)</span> <span>${formatMoney(valAds)}</span></div>
+                <div class="breakdown-item"><span>(-) Taxa Fixa por Item</span> <span>${formatMoney(taxaFixa)}</span></div>
+                <div class="breakdown-item"><span>(-) Custo Produto</span> <span>${formatMoney(custo)}</span></div>
+                <div class="breakdown-item total"><span>(=) Lucro Líquido</span> <span>${formatMoney(lucroLiquido)}</span></div>
+            </div>
+        `;
+    }
+</script>
+
+</body>
+</html>
