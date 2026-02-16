@@ -9,7 +9,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root{
-      /* Shopee vibe (mais laranja) */
       --shopee-orange: #EE4D2D;
       --shopee-orange-2: #FF7A00;
 
@@ -46,7 +45,6 @@
       background: radial-gradient(circle at center, #1a1f2e 0%, #0f1115 70%, #000 100%);
     }
 
-    /* Palco central */
     .stage{
       height: 100vh;
       width: 100%;
@@ -82,7 +80,6 @@
       letter-spacing: 0.02em;
       font-weight: 900;
 
-      /* Laranja Shopee no título */
       background: linear-gradient(135deg, var(--shopee-orange), var(--shopee-orange-2));
       -webkit-background-clip: text;
       background-clip: text;
@@ -125,7 +122,6 @@
       gap: 10px;
     }
 
-    /* Toggle modo */
     .modo-toggle{
       display: inline-flex;
       border-radius: 999px;
@@ -153,7 +149,6 @@
       box-shadow: 0 0 14px rgba(238,77,45,0.45);
     }
 
-    /* Form */
     .form-grid{
       display: grid;
       gap: 12px;
@@ -192,7 +187,6 @@
       margin-top: 6px;
     }
 
-    /* Resultado */
     .resultado-principal{
       margin-top: 8px;
       padding: 16px;
@@ -368,7 +362,6 @@
       font-weight: 800;
     }
 
-    /* Mobile */
     @media (max-width: 900px){
       body{ overflow: auto; }
       .stage{ align-items: flex-start; padding: 16px; }
@@ -419,9 +412,9 @@
               <label>Comissão Shopee</label>
               <select id="tipoComissao">
                 <option value="0.14">Padrão 14%</option>
-                <option value="0.20">Frete Grátis 20%</option>
+                <option value="0.20" selected>Frete Grátis 20%</option>
               </select>
-              <div class="hint">14% padrão, 20% com frete grátis</div>
+              <div class="hint">Pré-definido em 20% (frete grátis).</div>
             </div>
 
             <div class="row-grid">
@@ -443,16 +436,7 @@
             <div>
               <label>Cupom de desconto (%)</label>
               <input type="number" id="cupomPerc" value="0" step="0.1" />
-              <div class="hint">Desconto aplicado no anúncio (em %).</div>
-            </div>
-
-            <div>
-              <label>Quem paga o cupom?</label>
-              <select id="cupomPagador">
-                <option value="vendedor" selected>Vendedor (desconta do meu recebimento)</option>
-                <option value="shopee">Shopee (não desconta do meu recebimento)</option>
-              </select>
-              <div class="hint">Se a Shopee subsidia, não entra como custo.</div>
+              <div class="hint">Se preencher, será descontado do seu recebimento.</div>
             </div>
 
             <div>
@@ -516,11 +500,7 @@
     const loginError = document.getElementById('loginError');
     const body = document.body;
 
-    const ultimaLiberacao = localStorage.getItem('sh_calculadora_liberada');
-    const agora = Date.now();
-    if (ultimaLiberacao && (agora - parseInt(ultimaLiberacao)) < 24 * 60 * 60 * 1000) {
-      liberarAcesso();
-    }
+    // IMPORTANTE: Sem "lembrar login" (sem localStorage) para exigir senha sempre.
 
     senhaInput.addEventListener('input', function() {
       const valor = this.value;
@@ -560,7 +540,6 @@
     }
 
     function liberarAcesso() {
-      localStorage.setItem('sh_calculadora_liberada', Date.now().toString());
       loginScreen.style.opacity = '0';
       loginScreen.style.transform = 'scale(0.9)';
       loginScreen.style.pointerEvents = 'none';
@@ -570,10 +549,8 @@
       setTimeout(setupCalculadora, 250);
     }
 
-    // CALCULADORA
     function setupCalculadora() {
       let modoAtual = 'preco'; // preco | liquido
-
       const el = id => document.getElementById(id);
 
       function formatMoney(v) {
@@ -587,8 +564,8 @@
         const impostoPerc = (parseFloat(el('imposto').value) || 0) / 100;
         const adsPerc = (parseFloat(el('ads').value) || 0) / 100;
 
+        // Cupom (%) sempre desconta de você
         const cupomPerc = (parseFloat(el('cupomPerc').value) || 0) / 100;
-        const cupomPagador = el('cupomPagador').value;
 
         const custo = parseFloat(el('custo').value) || 0;
 
@@ -596,14 +573,11 @@
         let lucroLiquido = 0;
         let labelText = '';
 
-        // Cupom do vendedor entra como custo (percentual variável)
-        const cupomVendedorPerc = (cupomPagador === 'vendedor') ? cupomPerc : 0;
-
         if (modoAtual === 'preco') {
           const lucroDesejado = parseFloat(el('lucroDesejado').value) || 0;
 
-          // Cupom do vendedor aumenta o “percentual” de saída, igual ads/imposto/comissão
-          const somaPerc = comissao + impostoPerc + adsPerc + cupomVendedorPerc;
+          // Cupom entra como percentual variável (igual comissão/imposto/ads)
+          const somaPerc = comissao + impostoPerc + adsPerc + cupomPerc;
           const divisor = 1 - somaPerc;
 
           if (divisor > 0) {
@@ -614,14 +588,13 @@
 
           lucroLiquido = lucroDesejado;
           labelText = 'Preço sugerido (lucro desejado):';
-
         } else {
           precoVenda = parseFloat(el('precoAtual').value) || 0;
 
           const valComissaoX = precoVenda * comissao;
           const valImpostoX  = precoVenda * impostoPerc;
           const valAdsX      = precoVenda * adsPerc;
-          const valCupomX    = precoVenda * cupomVendedorPerc;
+          const valCupomX    = precoVenda * cupomPerc;
 
           lucroLiquido = precoVenda - (valComissaoX + valImpostoX + valAdsX + valCupomX + taxaFixa + custo);
           labelText = 'Lucro líquido (preço atual):';
@@ -630,7 +603,7 @@
         const valComissao = precoVenda * comissao;
         const valImposto  = precoVenda * impostoPerc;
         const valAds      = precoVenda * adsPerc;
-        const valCupom    = precoVenda * cupomVendedorPerc;
+        const valCupom    = precoVenda * cupomPerc;
 
         el('labelPrincipal').textContent = labelText;
         el('valorPrincipal').textContent = formatMoney(modoAtual === 'preco' ? precoVenda : lucroLiquido);
@@ -663,7 +636,7 @@
 
       [
         'tipoComissao','taxaFixa','imposto','ads',
-        'cupomPerc','cupomPagador',
+        'cupomPerc',
         'custo','lucroDesejado','precoAtual'
       ].forEach(id => {
         const node = el(id);
