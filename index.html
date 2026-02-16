@@ -4,12 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calculadora Shopee - Fabiano Souza</title>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root{
-      --sh-yellow: #FF5722;
-      --sh-orange: #FF9800;
+      /* Shopee vibe (mais laranja) */
+      --shopee-orange: #EE4D2D;
+      --shopee-orange-2: #FF7A00;
 
       --bg-1: #1f2430;
       --bg-2: #05060a;
@@ -28,7 +30,7 @@
       --panel-pad: 18px;
       --gap: 16px;
 
-      --max-w: 1080px; /* largura “de painel” central (parecido com ML) */
+      --max-w: 1080px;
     }
 
     html, body { height: 100%; }
@@ -44,38 +46,49 @@
       background: radial-gradient(circle at center, #1a1f2e 0%, #0f1115 70%, #000 100%);
     }
 
-    /* =========================
-       “PALCO” CENTRAL (igual a ideia do ML)
-       ========================= */
+    /* Palco central */
     .stage{
       height: 100vh;
       width: 100%;
       display: flex;
-      align-items: center;     /* centraliza vertical */
-      justify-content: center; /* centraliza horizontal */
+      align-items: center;
+      justify-content: center;
       padding: 22px;
     }
 
     .wrap{
       width: min(var(--max-w), 100%);
-      height: min(720px, calc(100vh - 44px)); /* painel central com altura grande */
+      height: min(720px, calc(100vh - 44px));
       display: flex;
       flex-direction: column;
       gap: 14px;
+
+      opacity: 0;
+      transform: translateY(14px);
+      transition: all 0.35s ease-out;
+    }
+    .wrap.unlocked{
+      opacity: 1;
+      transform: translateY(0);
     }
 
-    /* topo (título) */
     header{
       text-align: center;
       padding: 6px 0 2px;
       flex: 0 0 auto;
     }
     header h1{
-      font-size: 1.8rem;
-      letter-spacing: 0.04em;
-      color: #fbbf24; /* amarelinho “ML vibe” */
-      text-shadow: 0 0 18px rgba(251,191,36,0.25);
-      font-weight: 800;
+      font-size: 1.9rem;
+      letter-spacing: 0.02em;
+      font-weight: 900;
+
+      /* Laranja Shopee no título */
+      background: linear-gradient(135deg, var(--shopee-orange), var(--shopee-orange-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+
+      text-shadow: 0 0 22px rgba(238,77,45,0.22);
     }
     header p{
       margin-top: 6px;
@@ -83,10 +96,9 @@
       color: var(--muted);
     }
 
-    /* GRID 2 colunas como o ML */
     .grid{
       flex: 1 1 auto;
-      min-height: 0; /* importante para scroll interno */
+      min-height: 0;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: var(--gap);
@@ -99,13 +111,13 @@
       box-shadow: 0 18px 45px rgba(0,0,0,0.65);
       border: 1px solid rgba(255,255,255,0.04);
       min-height: 0;
-      overflow: auto; /* se conteúdo passar, rola dentro do card */
+      overflow: auto;
     }
 
     .card h2{
       font-size: 1.05rem;
       margin-bottom: 12px;
-      font-weight: 700;
+      font-weight: 800;
       color: #e5e7eb;
       display: flex;
       align-items: center;
@@ -113,7 +125,7 @@
       gap: 10px;
     }
 
-    /* Toggle modo (mantido) */
+    /* Toggle modo */
     .modo-toggle{
       display: inline-flex;
       border-radius: 999px;
@@ -133,12 +145,12 @@
       cursor: pointer;
       transition: all 0.15s ease;
       flex: 1;
-      font-weight: 600;
+      font-weight: 800;
     }
     .modo-btn.active{
-      background: linear-gradient(135deg, var(--sh-yellow), var(--sh-orange));
+      background: linear-gradient(135deg, var(--shopee-orange), var(--shopee-orange-2));
       color: #111827;
-      box-shadow: 0 0 14px rgba(255,87,34,0.55);
+      box-shadow: 0 0 14px rgba(238,77,45,0.45);
     }
 
     /* Form */
@@ -150,7 +162,7 @@
     label{
       font-size: 0.82rem;
       color: var(--muted);
-      font-weight: 600;
+      font-weight: 700;
       margin-bottom: 6px;
       display: block;
     }
@@ -166,8 +178,8 @@
       transition: all 0.15s ease;
     }
     input:focus, select:focus{
-      border-color: var(--sh-yellow);
-      box-shadow: 0 0 0 2px rgba(255,87,34,0.28);
+      border-color: var(--shopee-orange);
+      box-shadow: 0 0 0 2px rgba(238,77,45,0.25);
     }
     .row-grid{
       display: grid;
@@ -180,40 +192,41 @@
       margin-top: 6px;
     }
 
-    /* Resultado (estilo painel ML) */
+    /* Resultado */
     .resultado-principal{
       margin-top: 8px;
       padding: 16px;
       border-radius: 14px;
-      background: linear-gradient(135deg, rgba(59,130,246,0.14), rgba(15,23,42,0.95));
-      border: 1px solid rgba(59,130,246,0.35);
+      background: linear-gradient(135deg, rgba(238,77,45,0.16), rgba(15,23,42,0.95));
+      border: 1px solid rgba(238,77,45,0.35);
       text-align: left;
     }
     .resultado-principal .label{
       font-size: 0.85rem;
       color: var(--muted);
+      font-weight: 700;
     }
     .resultado-principal .value{
       font-size: 2rem;
-      font-weight: 800;
+      font-weight: 900;
       margin-top: 6px;
-      color: #fbbf24;
-      text-shadow: 0 0 16px rgba(251,191,36,0.25);
+      color: #ffd2c9;
+      text-shadow: 0 0 14px rgba(238,77,45,0.22);
     }
 
     .resumo{
       margin-top: 12px;
-      background: radial-gradient(circle at top left, rgba(255,87,34,0.12), transparent 60%);
+      background: radial-gradient(circle at top left, rgba(238,77,45,0.12), transparent 60%);
       border-radius: 12px;
       padding: 12px;
-      border: 1px solid rgba(255,87,34,0.18);
+      border: 1px solid rgba(238,77,45,0.18);
     }
     .resumo-title{
       font-size: 0.82rem;
       color: var(--muted);
       margin-bottom: 10px;
       text-align: center;
-      font-weight: 700;
+      font-weight: 900;
     }
     .resumo-grid{
       display: grid;
@@ -227,9 +240,9 @@
       gap: 10px;
       white-space: nowrap;
     }
-    .resumo-label{ color: var(--muted); }
-    .resumo-value.green{ color: var(--green); font-weight: 800; }
-    .resumo-value.red{ color: #fca5a5; }
+    .resumo-label{ color: var(--muted); font-weight: 700; }
+    .resumo-value.green{ color: var(--green); font-weight: 900; }
+    .resumo-value.red{ color: #fca5a5; font-weight: 800; }
 
     footer{
       flex: 0 0 auto;
@@ -239,13 +252,11 @@
       color: var(--muted);
     }
     footer span.author{
-      color: var(--sh-yellow);
-      font-weight: 800;
+      color: var(--shopee-orange);
+      font-weight: 900;
     }
 
-    /* =========================
-       LOGIN (tela de senha)
-       ========================= */
+    /* LOGIN */
     .login-screen{
       position: fixed;
       inset: 0;
@@ -266,7 +277,7 @@
       border-radius: 24px;
       padding: 40px 32px;
       box-shadow: 0 32px 80px rgba(0,0,0,0.75);
-      border: 1px solid rgba(255,87,34,0.15);
+      border: 1px solid rgba(238,77,45,0.18);
       text-align: center;
       max-width: 380px;
       width: 92%;
@@ -275,7 +286,7 @@
     .login-logo{
       width: 80px;
       height: 80px;
-      background: linear-gradient(135deg, var(--sh-yellow), var(--sh-orange));
+      background: linear-gradient(135deg, var(--shopee-orange), var(--shopee-orange-2));
       border-radius: 20px;
       margin: 0 auto 20px;
       display: flex;
@@ -284,7 +295,7 @@
       font-size: 2rem;
       font-weight: 900;
       color: #111827;
-      box-shadow: 0 0 30px rgba(255,87,34,0.6);
+      box-shadow: 0 0 30px rgba(238,77,45,0.55);
       animation: pulse 2s infinite;
     }
     @keyframes pulse{
@@ -292,26 +303,27 @@
       50% { transform: scale(1.05); }
     }
     .login-title{
-      color: var(--sh-yellow);
+      color: var(--shopee-orange);
       font-size: 1.4rem;
       margin-bottom: 8px;
-      text-shadow: 0 0 20px rgba(255,87,34,0.4);
+      text-shadow: 0 0 20px rgba(238,77,45,0.28);
       font-weight: 900;
     }
     .login-subtitle{
       color: var(--muted);
       font-size: 0.95rem;
       margin-bottom: 28px;
+      font-weight: 600;
     }
     .login-input{
       width: 100%;
       background: linear-gradient(135deg, #020617, #0b1220);
       border-radius: 14px;
-      border: 2px solid rgba(255,87,34,0.3);
+      border: 2px solid rgba(238,77,45,0.3);
       padding: 14px 18px;
       color: var(--text);
       font-size: 1.1rem;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: 1px;
       text-align: center;
       outline: none;
@@ -319,13 +331,13 @@
       margin-bottom: 16px;
     }
     .login-input:focus{
-      border-color: var(--sh-yellow);
-      box-shadow: 0 0 0 4px rgba(255,87,34,0.2), 0 0 20px rgba(255,87,34,0.3);
+      border-color: var(--shopee-orange);
+      box-shadow: 0 0 0 4px rgba(238,77,45,0.18), 0 0 20px rgba(238,77,45,0.22);
       transform: translateY(-2px);
     }
     .login-btn{
       width: 100%;
-      background: linear-gradient(135deg, var(--sh-yellow), var(--sh-orange));
+      background: linear-gradient(135deg, var(--shopee-orange), var(--shopee-orange-2));
       color: #111827;
       border: none;
       border-radius: 14px;
@@ -334,11 +346,11 @@
       font-weight: 900;
       cursor: pointer;
       transition: all 0.25s ease;
-      box-shadow: 0 8px 25px rgba(255,87,34,0.4);
+      box-shadow: 0 8px 25px rgba(238,77,45,0.35);
     }
     .login-btn:hover:not(:disabled){
       transform: translateY(-2px);
-      box-shadow: 0 12px 35px rgba(255,87,34,0.6);
+      box-shadow: 0 12px 35px rgba(238,77,45,0.5);
     }
     .login-btn:disabled{
       opacity: 0.7;
@@ -353,21 +365,10 @@
       margin-top: 12px;
       font-size: 0.85rem;
       display: none;
-      font-weight: 700;
+      font-weight: 800;
     }
 
-    /* estado “app” (transição) */
-    .wrap{
-      opacity: 0;
-      transform: translateY(14px);
-      transition: all 0.35s ease-out;
-    }
-    .wrap.unlocked{
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* Mobile: 1 coluna, e permite scroll da página */
+    /* Mobile */
     @media (max-width: 900px){
       body{ overflow: auto; }
       .stage{ align-items: flex-start; padding: 16px; }
@@ -375,10 +376,9 @@
       .grid{ grid-template-columns: 1fr; }
       .card{ overflow: visible; }
     }
-
     @media (max-width: 480px){
       .row-grid{ grid-template-columns: 1fr; }
-      header h1{ font-size: 1.5rem; }
+      header h1{ font-size: 1.55rem; }
     }
   </style>
 </head>
@@ -396,7 +396,7 @@
     </div>
   </div>
 
-  <!-- APP CENTRAL -->
+  <!-- APP -->
   <div class="stage">
     <div class="wrap" id="appContent">
       <header>
@@ -405,7 +405,7 @@
       </header>
 
       <div class="grid">
-        <!-- ESQUERDA: ENTRADAS -->
+        <!-- Entradas -->
         <section class="card">
           <h2>Configurações Shopee</h2>
 
@@ -441,6 +441,21 @@
             </div>
 
             <div>
+              <label>Cupom de desconto (%)</label>
+              <input type="number" id="cupomPerc" value="0" step="0.1" />
+              <div class="hint">Desconto aplicado no anúncio (em %).</div>
+            </div>
+
+            <div>
+              <label>Quem paga o cupom?</label>
+              <select id="cupomPagador">
+                <option value="vendedor" selected>Vendedor (desconta do meu recebimento)</option>
+                <option value="shopee">Shopee (não desconta do meu recebimento)</option>
+              </select>
+              <div class="hint">Se a Shopee subsidia, não entra como custo.</div>
+            </div>
+
+            <div>
               <label>Custo Produto (R$)</label>
               <input type="number" id="custo" value="20" step="0.01" />
             </div>
@@ -457,9 +472,9 @@
           </div>
         </section>
 
-        <!-- DIREITA: RESULTADOS -->
+        <!-- Resultado -->
         <section class="card">
-          <h2>Resultado <span style="font-size:0.8rem;color:var(--muted);font-weight:700;">(Shopee 2026)</span></h2>
+          <h2>Resultado <span style="font-size:0.8rem;color:var(--muted);font-weight:800;">(Shopee 2026)</span></h2>
 
           <div class="resultado-principal">
             <div class="label" id="labelPrincipal">Preço sugerido:</div>
@@ -471,9 +486,13 @@
             <div class="resumo-grid">
               <div class="resumo-item"><span class="resumo-label">Preço venda</span><span id="rPreco">R$ 0,00</span></div>
               <div class="resumo-item"><span class="resumo-label">Comissão</span><span class="resumo-value red" id="rComissao">R$ 0,00</span></div>
+
               <div class="resumo-item"><span class="resumo-label">Taxa fixa</span><span class="resumo-value red" id="rTaxa">R$ 0,00</span></div>
               <div class="resumo-item"><span class="resumo-label">Imposto NF</span><span class="resumo-value red" id="rImposto">R$ 0,00</span></div>
+
               <div class="resumo-item"><span class="resumo-label">Ads</span><span class="resumo-value red" id="rAds">R$ 0,00</span></div>
+              <div class="resumo-item"><span class="resumo-label">Cupom</span><span class="resumo-value red" id="rCupom">R$ 0,00</span></div>
+
               <div class="resumo-item"><span class="resumo-label">Custo prod.</span><span class="resumo-value red" id="rCusto">R$ 0,00</span></div>
               <div class="resumo-item"><span class="resumo-label">Lucro líquido</span><span class="resumo-value green" id="rLucro">R$ 0,00</span></div>
             </div>
@@ -509,7 +528,7 @@
       if (valor.length === 8) {
         loginBtn.style.background = 'linear-gradient(135deg, var(--green), #4ade80)';
       } else {
-        loginBtn.style.background = 'linear-gradient(135deg, var(--sh-yellow), var(--sh-orange))';
+        loginBtn.style.background = 'linear-gradient(135deg, var(--shopee-orange), var(--shopee-orange-2))';
       }
     });
 
@@ -533,7 +552,7 @@
       senhaInput.style.boxShadow = '0 0 0 4px rgba(239,68,68,0.2)';
       setTimeout(() => {
         loginError.style.display = 'none';
-        senhaInput.style.borderColor = 'rgba(255,87,34,0.3)';
+        senhaInput.style.borderColor = 'rgba(238,77,45,0.3)';
         senhaInput.style.boxShadow = 'none';
         senhaInput.value = '';
         loginBtn.disabled = true;
@@ -551,7 +570,7 @@
       setTimeout(setupCalculadora, 250);
     }
 
-    // CÓDIGO DA CALCULADORA SHOPEE
+    // CALCULADORA
     function setupCalculadora() {
       let modoAtual = 'preco'; // preco | liquido
 
@@ -567,35 +586,51 @@
         const taxaFixa = parseFloat(el('taxaFixa').value) || 0;
         const impostoPerc = (parseFloat(el('imposto').value) || 0) / 100;
         const adsPerc = (parseFloat(el('ads').value) || 0) / 100;
+
+        const cupomPerc = (parseFloat(el('cupomPerc').value) || 0) / 100;
+        const cupomPagador = el('cupomPagador').value;
+
         const custo = parseFloat(el('custo').value) || 0;
 
         let precoVenda = 0;
         let lucroLiquido = 0;
         let labelText = '';
 
+        // Cupom do vendedor entra como custo (percentual variável)
+        const cupomVendedorPerc = (cupomPagador === 'vendedor') ? cupomPerc : 0;
+
         if (modoAtual === 'preco') {
           const lucroDesejado = parseFloat(el('lucroDesejado').value) || 0;
-          const somaPerc = comissao + impostoPerc + adsPerc;
+
+          // Cupom do vendedor aumenta o “percentual” de saída, igual ads/imposto/comissão
+          const somaPerc = comissao + impostoPerc + adsPerc + cupomVendedorPerc;
           const divisor = 1 - somaPerc;
+
           if (divisor > 0) {
             precoVenda = (custo + lucroDesejado + taxaFixa) / divisor;
           } else {
             precoVenda = 0;
           }
+
           lucroLiquido = lucroDesejado;
           labelText = 'Preço sugerido (lucro desejado):';
+
         } else {
           precoVenda = parseFloat(el('precoAtual').value) || 0;
+
           const valComissaoX = precoVenda * comissao;
-          const valImpostoX = precoVenda * impostoPerc;
-          const valAdsX = precoVenda * adsPerc;
-          lucroLiquido = precoVenda - (valComissaoX + valImpostoX + valAdsX + taxaFixa + custo);
+          const valImpostoX  = precoVenda * impostoPerc;
+          const valAdsX      = precoVenda * adsPerc;
+          const valCupomX    = precoVenda * cupomVendedorPerc;
+
+          lucroLiquido = precoVenda - (valComissaoX + valImpostoX + valAdsX + valCupomX + taxaFixa + custo);
           labelText = 'Lucro líquido (preço atual):';
         }
 
         const valComissao = precoVenda * comissao;
-        const valImposto = precoVenda * impostoPerc;
-        const valAds = precoVenda * adsPerc;
+        const valImposto  = precoVenda * impostoPerc;
+        const valAds      = precoVenda * adsPerc;
+        const valCupom    = precoVenda * cupomVendedorPerc;
 
         el('labelPrincipal').textContent = labelText;
         el('valorPrincipal').textContent = formatMoney(modoAtual === 'preco' ? precoVenda : lucroLiquido);
@@ -605,6 +640,7 @@
         el('rTaxa').textContent = formatMoney(taxaFixa);
         el('rImposto').textContent = formatMoney(valImposto);
         el('rAds').textContent = formatMoney(valAds);
+        el('rCupom').textContent = formatMoney(valCupom);
         el('rCusto').textContent = formatMoney(custo);
         el('rLucro').textContent = formatMoney(lucroLiquido);
       }
@@ -625,7 +661,11 @@
         calcular();
       }
 
-      ['tipoComissao','taxaFixa','imposto','ads','custo','lucroDesejado','precoAtual'].forEach(id => {
+      [
+        'tipoComissao','taxaFixa','imposto','ads',
+        'cupomPerc','cupomPagador',
+        'custo','lucroDesejado','precoAtual'
+      ].forEach(id => {
         const node = el(id);
         if (!node) return;
         node.addEventListener('input', calcular);
