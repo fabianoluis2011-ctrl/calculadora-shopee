@@ -1,578 +1,642 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Shopee - Fabiano Souza</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        :root {
-            --sh-yellow: #FF5722;
-            --sh-orange: #FF9800;
-            --sh-bg: #0f1115;
-            --sh-card: #181b22;
-            --sh-text: #f5f5f5;
-            --sh-muted: #9ca3af;
-            --sh-green: #22c55e;
-            --sh-red: #ef4444;
-        }
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: radial-gradient(circle at top, #1f2430 0, #05060a 55%, #000 100%);
-            color: var(--sh-text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        body.locked {
-            background: radial-gradient(circle at center, #1a1f2e 0%, #0f1115 70%, #000 100%);
-        }
-        
-        /* TELA DE SENHA (IDÊNTICA AO ML) */
-        .login-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(15,17,21,0.98), rgba(5,6,10,0.99));
-            backdrop-filter: blur(20px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.4s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .login-card {
-            background: linear-gradient(145deg, rgba(24,27,34,0.95), rgba(18,21,28,0.98));
-            border-radius: 24px;
-            padding: 40px 32px;
-            box-shadow: 0 32px 80px rgba(0,0,0,0.75);
-            border: 1px solid rgba(255,87,34,0.15);
-            text-align: center;
-            max-width: 380px;
-            width: 90%;
-            backdrop-filter: blur(10px);
-        }
-        .login-logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--sh-yellow), var(--sh-orange));
-            border-radius: 20px;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: bold;
-            color: #111827;
-            box-shadow: 0 0 30px rgba(255,87,34,0.6);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        .login-title {
-            color: var(--sh-yellow);
-            font-size: 1.4rem;
-            margin-bottom: 8px;
-            text-shadow: 0 0 20px rgba(255,87,34,0.4);
-        }
-        .login-subtitle {
-            color: var(--sh-muted);
-            font-size: 0.95rem;
-            margin-bottom: 28px;
-        }
-        .login-input {
-            width: 100%;
-            background: linear-gradient(135deg, #020617, #0b1220);
-            border-radius: 14px;
-            border: 2px solid rgba(255,87,34,0.3);
-            padding: 14px 18px;
-            color: var(--sh-text);
-            font-size: 1.1rem;
-            font-weight: 500;
-            letter-spacing: 1px;
-            text-align: center;
-            outline: none;
-            transition: all 0.25s ease;
-            margin-bottom: 16px;
-        }
-        .login-input:focus {
-            border-color: var(--sh-yellow);
-            box-shadow: 0 0 0 4px rgba(255,87,34,0.2), 0 0 20px rgba(255,87,34,0.3);
-            transform: translateY(-2px);
-        }
-        .login-btn {
-            width: 100%;
-            background: linear-gradient(135deg, var(--sh-yellow), var(--sh-orange));
-            color: #111827;
-            border: none;
-            border-radius: 14px;
-            padding: 14px 24px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            box-shadow: 0 8px 25px rgba(255,87,34,0.4);
-        }
-        .login-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(255,87,34,0.6);
-        }
-        .login-error {
-            background: rgba(239,68,68,0.15);
-            border: 1px solid rgba(239,68,68,0.4);
-            color: #fca5a5;
-            padding: 12px;
-            border-radius: 12px;
-            margin-top: 12px;
-            font-size: 0.85rem;
-            display: none;
-        }
-        
-        .app {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            max-width: 420px;
-            margin: 0 auto;
-            padding: 16px;
-            gap: 16px;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.4s ease-out;
-        }
-        .app.unlocked {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        header {
-            text-align: center;
-            padding: 8px 0 4px;
-        }
-        header h1 {
-            font-size: 1.6rem;
-            letter-spacing: 0.04em;
-            color: var(--sh-yellow);
-            text-shadow: 0 0 18px rgba(255,87,34,0.35);
-        }
-        header p {
-            font-size: 0.9rem;
-            color: var(--sh-muted);
-            margin-top: 4px;
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 16px;
-            flex: 1;
-        }
-        
-        .card {
-            background: linear-gradient(135deg, rgba(24,27,34,0.96), rgba(18,21,28,0.98));
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 18px 45px rgba(0,0,0,0.65);
-            border: 1px solid rgba(255,255,255,0.03);
-        }
-        
-        .modo-toggle {
-            display: inline-flex;
-            border-radius: 999px;
-            padding: 3px;
-            background: rgba(15,23,42,0.8);
-            border: 1px solid rgba(148,163,184,0.35);
-            margin-bottom: 16px;
-            width: 100%;
-        }
-        .modo-btn {
-            border: none;
-            background: transparent;
-            color: var(--sh-muted);
-            padding: 10px 16px;
-            border-radius: 999px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            flex: 1;
-            font-weight: 500;
-        }
-        .modo-btn.active {
-            background: linear-gradient(135deg, var(--sh-yellow), var(--sh-orange));
-            color: #111827;
-            box-shadow: 0 0 14px rgba(255,87,34,0.55);
-        }
-        
-        .form-grid {
-            display: grid;
-            gap: 12px;
-            margin-top: 12px;
-        }
-        
-        label {
-            font-size: 0.8rem;
-            color: var(--sh-muted);
-            font-weight: 500;
-            margin-bottom: 4px;
-            display: block;
-        }
-        
-        input, select {
-            width: 100%;
-            background: linear-gradient(135deg, #020617, #0b1220);
-            border-radius: 10px;
-            border: 1px solid rgba(148,163,184,0.45);
-            padding: 10px 12px;
-            color: var(--sh-text);
-            font-size: 0.9rem;
-            outline: none;
-            transition: all 0.15s ease;
-        }
-        input:focus, select:focus {
-            border-color: var(--sh-yellow);
-            box-shadow: 0 0 0 2px rgba(255,87,34,0.3);
-        }
-        
-        .row-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        
-        .resultado-principal {
-            margin-top: 16px;
-            padding: 16px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, rgba(255,87,34,0.2), rgba(15,23,42,0.95));
-            border: 1px solid rgba(255,87,34,0.4);
-            text-align: center;
-        }
-        .resultado-principal .label {
-            font-size: 0.85rem;
-            color: var(--sh-muted);
-        }
-        .resultado-principal .value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-top: 6px;
-            color: var(--sh-yellow);
-            text-shadow: 0 0 16px rgba(255,87,34,0.6);
-        }
-        
-        .resumo {
-            margin-top: 12px;
-            background: radial-gradient(circle at top left, rgba(255,87,34,0.15), transparent 60%);
-            border-radius: 12px;
-            padding: 12px;
-            border: 1px solid rgba(255,87,34,0.2);
-        }
-        .resumo-title {
-            font-size: 0.8rem;
-            color: var(--sh-muted);
-            margin-bottom: 8px;
-            text-align: center;
-        }
-        .resumo-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px 12px;
-            font-size: 0.8rem;
-        }
-        .resumo-item {
-            display: flex;
-            justify-content: space-between;
-        }
-        .resumo-label { color: var(--sh-muted); }
-        .resumo-value.green { color: var(--sh-green); font-weight: 600; }
-        .resumo-value.red { color: var(--sh-red); }
-        
-        .hint {
-            font-size: 0.7rem;
-            color: #6b7280;
-            margin-top: 2px;
-        }
-        
-        footer {
-            text-align: center;
-            padding: 12px 0;
-            font-size: 0.8rem;
-            color: var(--sh-muted);
-            border-top: 1px solid rgba(31,41,55,0.9);
-            background: radial-gradient(circle at bottom, rgba(255,87,34,0.1), transparent 60%);
-        }
-        footer span.author {
-            color: var(--sh-yellow);
-            font-weight: 600;
-        }
-        
-        @media (max-width: 480px) {
-            .row-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora Shopee - Fabiano Souza</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root{
+      --sh-yellow: #FF5722;
+      --sh-orange: #FF9800;
+
+      --bg-1: #1f2430;
+      --bg-2: #05060a;
+      --bg-3: #000;
+
+      --card-1: rgba(24,27,34,0.96);
+      --card-2: rgba(18,21,28,0.98);
+
+      --text: #f5f5f5;
+      --muted: #9ca3af;
+
+      --green: #22c55e;
+      --red: #ef4444;
+
+      --panel-radius: 18px;
+      --panel-pad: 18px;
+      --gap: 16px;
+
+      --max-w: 1080px; /* largura “de painel” central (parecido com ML) */
+    }
+
+    html, body { height: 100%; }
+
+    body{
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, var(--bg-1) 0, var(--bg-2) 55%, var(--bg-3) 100%);
+      overflow: hidden;
+    }
+
+    body.locked{
+      background: radial-gradient(circle at center, #1a1f2e 0%, #0f1115 70%, #000 100%);
+    }
+
+    /* =========================
+       “PALCO” CENTRAL (igual a ideia do ML)
+       ========================= */
+    .stage{
+      height: 100vh;
+      width: 100%;
+      display: flex;
+      align-items: center;     /* centraliza vertical */
+      justify-content: center; /* centraliza horizontal */
+      padding: 22px;
+    }
+
+    .wrap{
+      width: min(var(--max-w), 100%);
+      height: min(720px, calc(100vh - 44px)); /* painel central com altura grande */
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* topo (título) */
+    header{
+      text-align: center;
+      padding: 6px 0 2px;
+      flex: 0 0 auto;
+    }
+    header h1{
+      font-size: 1.8rem;
+      letter-spacing: 0.04em;
+      color: #fbbf24; /* amarelinho “ML vibe” */
+      text-shadow: 0 0 18px rgba(251,191,36,0.25);
+      font-weight: 800;
+    }
+    header p{
+      margin-top: 6px;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    /* GRID 2 colunas como o ML */
+    .grid{
+      flex: 1 1 auto;
+      min-height: 0; /* importante para scroll interno */
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--gap);
+    }
+
+    .card{
+      background: linear-gradient(135deg, var(--card-1), var(--card-2));
+      border-radius: var(--panel-radius);
+      padding: var(--panel-pad);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.65);
+      border: 1px solid rgba(255,255,255,0.04);
+      min-height: 0;
+      overflow: auto; /* se conteúdo passar, rola dentro do card */
+    }
+
+    .card h2{
+      font-size: 1.05rem;
+      margin-bottom: 12px;
+      font-weight: 700;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    /* Toggle modo (mantido) */
+    .modo-toggle{
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 3px;
+      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(148,163,184,0.35);
+      margin-bottom: 16px;
+      width: 100%;
+    }
+    .modo-btn{
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      flex: 1;
+      font-weight: 600;
+    }
+    .modo-btn.active{
+      background: linear-gradient(135deg, var(--sh-yellow), var(--sh-orange));
+      color: #111827;
+      box-shadow: 0 0 14px rgba(255,87,34,0.55);
+    }
+
+    /* Form */
+    .form-grid{
+      display: grid;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    label{
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: block;
+    }
+    input, select{
+      width: 100%;
+      background: linear-gradient(135deg, #020617, #0b1220);
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.45);
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    input:focus, select:focus{
+      border-color: var(--sh-yellow);
+      box-shadow: 0 0 0 2px rgba(255,87,34,0.28);
+    }
+    .row-grid{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .hint{
+      font-size: 0.72rem;
+      color: #6b7280;
+      margin-top: 6px;
+    }
+
+    /* Resultado (estilo painel ML) */
+    .resultado-principal{
+      margin-top: 8px;
+      padding: 16px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.14), rgba(15,23,42,0.95));
+      border: 1px solid rgba(59,130,246,0.35);
+      text-align: left;
+    }
+    .resultado-principal .label{
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .resultado-principal .value{
+      font-size: 2rem;
+      font-weight: 800;
+      margin-top: 6px;
+      color: #fbbf24;
+      text-shadow: 0 0 16px rgba(251,191,36,0.25);
+    }
+
+    .resumo{
+      margin-top: 12px;
+      background: radial-gradient(circle at top left, rgba(255,87,34,0.12), transparent 60%);
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid rgba(255,87,34,0.18);
+    }
+    .resumo-title{
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 10px;
+      text-align: center;
+      font-weight: 700;
+    }
+    .resumo-grid{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 12px;
+      font-size: 0.85rem;
+    }
+    .resumo-item{
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      white-space: nowrap;
+    }
+    .resumo-label{ color: var(--muted); }
+    .resumo-value.green{ color: var(--green); font-weight: 800; }
+    .resumo-value.red{ color: #fca5a5; }
+
+    footer{
+      flex: 0 0 auto;
+      text-align: center;
+      padding: 10px 0 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    footer span.author{
+      color: var(--sh-yellow);
+      font-weight: 800;
+    }
+
+    /* =========================
+       LOGIN (tela de senha)
+       ========================= */
+    .login-screen{
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(15,17,21,0.98), rgba(5,6,10,0.99));
+      backdrop-filter: blur(20px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn{
+      from { opacity: 0; transform: scale(0.95); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .login-card{
+      background: linear-gradient(145deg, rgba(24,27,34,0.95), rgba(18,21,28,0.98));
+      border-radius: 24px;
+      padding: 40px 32px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.75);
+      border: 1px solid rgba(255,87,34,0.15);
+      text-align: center;
+      max-width: 380px;
+      width: 92%;
+      backdrop-filter: blur(10px);
+    }
+    .login-logo{
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--sh-yellow), var(--sh-orange));
+      border-radius: 20px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 900;
+      color: #111827;
+      box-shadow: 0 0 30px rgba(255,87,34,0.6);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse{
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .login-title{
+      color: var(--sh-yellow);
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+      text-shadow: 0 0 20px rgba(255,87,34,0.4);
+      font-weight: 900;
+    }
+    .login-subtitle{
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+    }
+    .login-input{
+      width: 100%;
+      background: linear-gradient(135deg, #020617, #0b1220);
+      border-radius: 14px;
+      border: 2px solid rgba(255,87,34,0.3);
+      padding: 14px 18px;
+      color: var(--text);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-align: center;
+      outline: none;
+      transition: all 0.25s ease;
+      margin-bottom: 16px;
+    }
+    .login-input:focus{
+      border-color: var(--sh-yellow);
+      box-shadow: 0 0 0 4px rgba(255,87,34,0.2), 0 0 20px rgba(255,87,34,0.3);
+      transform: translateY(-2px);
+    }
+    .login-btn{
+      width: 100%;
+      background: linear-gradient(135deg, var(--sh-yellow), var(--sh-orange));
+      color: #111827;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 24px;
+      font-size: 1rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 8px 25px rgba(255,87,34,0.4);
+    }
+    .login-btn:hover:not(:disabled){
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(255,87,34,0.6);
+    }
+    .login-btn:disabled{
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .login-error{
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.4);
+      color: #fca5a5;
+      padding: 12px;
+      border-radius: 12px;
+      margin-top: 12px;
+      font-size: 0.85rem;
+      display: none;
+      font-weight: 700;
+    }
+
+    /* estado “app” (transição) */
+    .wrap{
+      opacity: 0;
+      transform: translateY(14px);
+      transition: all 0.35s ease-out;
+    }
+    .wrap.unlocked{
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Mobile: 1 coluna, e permite scroll da página */
+    @media (max-width: 900px){
+      body{ overflow: auto; }
+      .stage{ align-items: flex-start; padding: 16px; }
+      .wrap{ height: auto; }
+      .grid{ grid-template-columns: 1fr; }
+      .card{ overflow: visible; }
+    }
+
+    @media (max-width: 480px){
+      .row-grid{ grid-template-columns: 1fr; }
+      header h1{ font-size: 1.5rem; }
+    }
+  </style>
 </head>
+
 <body class="locked">
-    <!-- TELA DE SENHA (IDÊNTICA) -->
-    <div class="login-screen" id="loginScreen">
-        <div class="login-card">
-            <div class="login-logo">S</div>
-            <h2 class="login-title">Calculadora Shopee</h2>
-            <p class="login-subtitle">Digite a senha para ter acesso ao conteúdo</p>
-            <input type="password" class="login-input" id="senhaInput" placeholder="Senha de 8 dígitos" maxlength="8">
-            <button class="login-btn" id="loginBtn" disabled>Entrar</button>
-            <div class="login-error" id="loginError">Senha incorreta. Tente novamente.</div>
-        </div>
+  <!-- LOGIN -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo">S</div>
+      <h2 class="login-title">Calculadora Shopee</h2>
+      <p class="login-subtitle">Digite a senha para ter acesso ao conteúdo</p>
+      <input type="password" class="login-input" id="senhaInput" placeholder="Senha de 8 dígitos" maxlength="8" />
+      <button class="login-btn" id="loginBtn" disabled>Entrar</button>
+      <div class="login-error" id="loginError">Senha incorreta. Tente novamente.</div>
     </div>
+  </div>
 
-    <!-- APP (OCULTO) -->
-    <div class="app" id="appContent">
-        <header>
-            <h1>Calculadora Shopee</h1>
-            <p>Precificação completa · Comissão + Frete Grátis + Impostos</p>
-        </header>
+  <!-- APP CENTRAL -->
+  <div class="stage">
+    <div class="wrap" id="appContent">
+      <header>
+        <h1>Calculadora Shopee</h1>
+        <p>Precificação completa · Comissão + Frete Grátis + Impostos</p>
+      </header>
 
-        <div class="grid">
-            <section class="card">
-                <h2>Configurações Shopee</h2>
-                
-                <div class="modo-toggle">
-                    <button id="btnModoPreco" class="modo-btn active">Preço pelo Lucro</button>
-                    <button id="btnModoLiquido" class="modo-btn">Lucro pelo Preço</button>
-                </div>
+      <div class="grid">
+        <!-- ESQUERDA: ENTRADAS -->
+        <section class="card">
+          <h2>Configurações Shopee</h2>
 
-                <div class="form-grid">
-                    <div>
-                        <label>Comissão Shopee</label>
-                        <select id="tipoComissao">
-                            <option value="0.14">Padrão 14%</option>
-                            <option value="0.20">Frete Grátis 20%</option>
-                        </select>
-                        <div class="hint">14% padrão, 20% com frete grátis</div>
-                    </div>
+          <div class="modo-toggle">
+            <button id="btnModoPreco" class="modo-btn active">Preço pelo Lucro</button>
+            <button id="btnModoLiquido" class="modo-btn">Lucro pelo Preço</button>
+          </div>
 
-                    <div class="row-grid">
-                        <div>
-                            <label>Taxa Fixa (R$)</label>
-                            <input type="number" id="taxaFixa" value="4" step="0.01">
-                        </div>
-                        <div>
-                            <label>Imposto NF (%)</label>
-                            <input type="number" id="imposto" value="4" step="0.1">
-                        </div>
-                    </div>
+          <div class="form-grid">
+            <div>
+              <label>Comissão Shopee</label>
+              <select id="tipoComissao">
+                <option value="0.14">Padrão 14%</option>
+                <option value="0.20">Frete Grátis 20%</option>
+              </select>
+              <div class="hint">14% padrão, 20% com frete grátis</div>
+            </div>
 
-                    <div>
-                        <label>Ads / Marketing (%)</label>
-                        <input type="number" id="ads" value="0" step="0.1">
-                    </div>
+            <div class="row-grid">
+              <div>
+                <label>Taxa Fixa (R$)</label>
+                <input type="number" id="taxaFixa" value="4" step="0.01" />
+              </div>
+              <div>
+                <label>Imposto NF (%)</label>
+                <input type="number" id="imposto" value="4" step="0.1" />
+              </div>
+            </div>
 
-                    <div>
-                        <label>Custo Produto (R$)</label>
-                        <input type="number" id="custo" value="20" step="0.01">
-                    </div>
+            <div>
+              <label>Ads / Marketing (%)</label>
+              <input type="number" id="ads" value="0" step="0.1" />
+            </div>
 
-                    <div id="campoLucroDesejado">
-                        <label>Lucro Desejado (R$)</label>
-                        <input type="number" id="lucroDesejado" value="15" step="0.01">
-                    </div>
+            <div>
+              <label>Custo Produto (R$)</label>
+              <input type="number" id="custo" value="20" step="0.01" />
+            </div>
 
-                    <div id="campoPrecoAtual" style="display:none;">
-                        <label>Preço Atual (R$)</label>
-                        <input type="number" id="precoAtual" value="50" step="0.01">
-                    </div>
-                </div>
-            </section>
+            <div id="campoLucroDesejado">
+              <label>Lucro Desejado (R$)</label>
+              <input type="number" id="lucroDesejado" value="15" step="0.01" />
+            </div>
 
-            <section class="card">
-                <h2>Resultado <span style="font-size:0.75rem;color:var(--sh-muted);">(Shopee 2026)</span></h2>
-                
-                <div class="resultado-principal">
-                    <div class="label" id="labelPrincipal">Preço sugerido:</div>
-                    <div class="value" id="valorPrincipal">R$ 0,00</div>
-                </div>
+            <div id="campoPrecoAtual" style="display:none;">
+              <label>Preço Atual (R$)</label>
+              <input type="number" id="precoAtual" value="50" step="0.01" />
+            </div>
+          </div>
+        </section>
 
-                <div class="resumo">
-                    <div class="resumo-title">Resumo completo</div>
-                    <div class="resumo-grid">
-                        <div class="resumo-item"><span class="resumo-label">Preço venda</span><span id="rPreco">R$ 0,00</span></div>
-                        <div class="resumo-item"><span class="resumo-label">Comissão</span><span class="resumo-value red" id="rComissao">R$ 0,00</span></div>
-                        <div class="resumo-item"><span class="resumo-label">Taxa fixa</span><span class="resumo-value red" id="rTaxa">R$ 0,00</span></div>
-                        <div class="resumo-item"><span class="resumo-label">Imposto NF</span><span class="resumo-value red" id="rImposto">R$ 0,00</span></div>
-                        <div class="resumo-item"><span class="resumo-label">Ads</span><span class="resumo-value red" id="rAds">R$ 0,00</span></div>
-                        <div class="resumo-item"><span class="resumo-label">Custo prod.</span><span class="resumo-value red" id="rCusto">R$ 0,00</span></div>
-                        <div class="resumo-item"><span class="resumo-label">Lucro líquido</span><span class="resumo-value green" id="rLucro">R$ 0,00</span></div>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </div>
+        <!-- DIREITA: RESULTADOS -->
+        <section class="card">
+          <h2>Resultado <span style="font-size:0.8rem;color:var(--muted);font-weight:700;">(Shopee 2026)</span></h2>
 
-    <footer>
+          <div class="resultado-principal">
+            <div class="label" id="labelPrincipal">Preço sugerido:</div>
+            <div class="value" id="valorPrincipal">R$ 0,00</div>
+          </div>
+
+          <div class="resumo">
+            <div class="resumo-title">Resumo completo</div>
+            <div class="resumo-grid">
+              <div class="resumo-item"><span class="resumo-label">Preço venda</span><span id="rPreco">R$ 0,00</span></div>
+              <div class="resumo-item"><span class="resumo-label">Comissão</span><span class="resumo-value red" id="rComissao">R$ 0,00</span></div>
+              <div class="resumo-item"><span class="resumo-label">Taxa fixa</span><span class="resumo-value red" id="rTaxa">R$ 0,00</span></div>
+              <div class="resumo-item"><span class="resumo-label">Imposto NF</span><span class="resumo-value red" id="rImposto">R$ 0,00</span></div>
+              <div class="resumo-item"><span class="resumo-label">Ads</span><span class="resumo-value red" id="rAds">R$ 0,00</span></div>
+              <div class="resumo-item"><span class="resumo-label">Custo prod.</span><span class="resumo-value red" id="rCusto">R$ 0,00</span></div>
+              <div class="resumo-item"><span class="resumo-label">Lucro líquido</span><span class="resumo-value green" id="rLucro">R$ 0,00</span></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer>
         Desenvolvido por <span class="author">Fabiano Souza</span> · Calculadora de Precificação Shopee
-    </footer>
+      </footer>
+    </div>
+  </div>
 
-    <script>
-        // SENHA (IDÊNTICA AO ML CORRIGIDA)
-        const SENHA_CORRETA = '99662444';
-        const loginScreen = document.getElementById('loginScreen');
-        const appContent = document.getElementById('appContent');
-        const senhaInput = document.getElementById('senhaInput');
-        const loginBtn = document.getElementById('loginBtn');
-        const loginError = document.getElementById('loginError');
-        const body = document.body;
+  <script>
+    // SENHA
+    const SENHA_CORRETA = '99662444';
+    const loginScreen = document.getElementById('loginScreen');
+    const appContent = document.getElementById('appContent');
+    const senhaInput = document.getElementById('senhaInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginError = document.getElementById('loginError');
+    const body = document.body;
 
-        const ultimaLiberacao = localStorage.getItem('sh_calculadora_liberada');
-        const agora = Date.now();
-        if (ultimaLiberacao && (agora - parseInt(ultimaLiberacao)) < 24 * 60 * 60 * 1000) {
-            liberarAcesso();
+    const ultimaLiberacao = localStorage.getItem('sh_calculadora_liberada');
+    const agora = Date.now();
+    if (ultimaLiberacao && (agora - parseInt(ultimaLiberacao)) < 24 * 60 * 60 * 1000) {
+      liberarAcesso();
+    }
+
+    senhaInput.addEventListener('input', function() {
+      const valor = this.value;
+      loginBtn.disabled = valor.length < 8;
+      if (valor.length === 8) {
+        loginBtn.style.background = 'linear-gradient(135deg, var(--green), #4ade80)';
+      } else {
+        loginBtn.style.background = 'linear-gradient(135deg, var(--sh-yellow), var(--sh-orange))';
+      }
+    });
+
+    loginBtn.addEventListener('click', function() {
+      const senhaDigitada = senhaInput.value;
+      if (senhaDigitada === SENHA_CORRETA) liberarAcesso();
+      else mostrarErro();
+    });
+
+    senhaInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && this.value.length === 8) {
+        const senhaDigitada = senhaInput.value;
+        if (senhaDigitada === SENHA_CORRETA) liberarAcesso();
+        else mostrarErro();
+      }
+    });
+
+    function mostrarErro() {
+      loginError.style.display = 'block';
+      senhaInput.style.borderColor = 'var(--red)';
+      senhaInput.style.boxShadow = '0 0 0 4px rgba(239,68,68,0.2)';
+      setTimeout(() => {
+        loginError.style.display = 'none';
+        senhaInput.style.borderColor = 'rgba(255,87,34,0.3)';
+        senhaInput.style.boxShadow = 'none';
+        senhaInput.value = '';
+        loginBtn.disabled = true;
+      }, 2000);
+    }
+
+    function liberarAcesso() {
+      localStorage.setItem('sh_calculadora_liberada', Date.now().toString());
+      loginScreen.style.opacity = '0';
+      loginScreen.style.transform = 'scale(0.9)';
+      loginScreen.style.pointerEvents = 'none';
+      body.classList.remove('locked');
+      appContent.classList.add('unlocked');
+      setTimeout(() => { loginScreen.style.display = 'none'; }, 400);
+      setTimeout(setupCalculadora, 250);
+    }
+
+    // CÓDIGO DA CALCULADORA SHOPEE
+    function setupCalculadora() {
+      let modoAtual = 'preco'; // preco | liquido
+
+      const el = id => document.getElementById(id);
+
+      function formatMoney(v) {
+        if (isNaN(v) || !isFinite(v)) v = 0;
+        return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      }
+
+      function calcular() {
+        const comissao = parseFloat(el('tipoComissao').value);
+        const taxaFixa = parseFloat(el('taxaFixa').value) || 0;
+        const impostoPerc = (parseFloat(el('imposto').value) || 0) / 100;
+        const adsPerc = (parseFloat(el('ads').value) || 0) / 100;
+        const custo = parseFloat(el('custo').value) || 0;
+
+        let precoVenda = 0;
+        let lucroLiquido = 0;
+        let labelText = '';
+
+        if (modoAtual === 'preco') {
+          const lucroDesejado = parseFloat(el('lucroDesejado').value) || 0;
+          const somaPerc = comissao + impostoPerc + adsPerc;
+          const divisor = 1 - somaPerc;
+          if (divisor > 0) {
+            precoVenda = (custo + lucroDesejado + taxaFixa) / divisor;
+          } else {
+            precoVenda = 0;
+          }
+          lucroLiquido = lucroDesejado;
+          labelText = 'Preço sugerido (lucro desejado):';
+        } else {
+          precoVenda = parseFloat(el('precoAtual').value) || 0;
+          const valComissaoX = precoVenda * comissao;
+          const valImpostoX = precoVenda * impostoPerc;
+          const valAdsX = precoVenda * adsPerc;
+          lucroLiquido = precoVenda - (valComissaoX + valImpostoX + valAdsX + taxaFixa + custo);
+          labelText = 'Lucro líquido (preço atual):';
         }
 
-        senhaInput.addEventListener('input', function() {
-            const valor = this.value;
-            loginBtn.disabled = valor.length < 8;
-            if (valor.length === 8) {
-                loginBtn.style.background = 'linear-gradient(135deg, var(--sh-green), #4ade80)';
-            } else {
-                loginBtn.style.background = 'linear-gradient(135deg, var(--sh-yellow), var(--sh-orange))';
-            }
-        });
+        const valComissao = precoVenda * comissao;
+        const valImposto = precoVenda * impostoPerc;
+        const valAds = precoVenda * adsPerc;
 
-        loginBtn.addEventListener('click', function() {
-            const senhaDigitada = senhaInput.value;
-            if (senhaDigitada === SENHA_CORRETA) {
-                liberarAcesso();
-            } else {
-                mostrarErro();
-            }
-        });
+        el('labelPrincipal').textContent = labelText;
+        el('valorPrincipal').textContent = formatMoney(modoAtual === 'preco' ? precoVenda : lucroLiquido);
 
-        senhaInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && this.value.length === 8) {
-                const senhaDigitada = this.value;
-                if (senhaDigitada === SENHA_CORRETA) {
-                    liberarAcesso();
-                } else {
-                    mostrarErro();
-                }
-            }
-        });
+        el('rPreco').textContent = formatMoney(precoVenda);
+        el('rComissao').textContent = formatMoney(valComissao);
+        el('rTaxa').textContent = formatMoney(taxaFixa);
+        el('rImposto').textContent = formatMoney(valImposto);
+        el('rAds').textContent = formatMoney(valAds);
+        el('rCusto').textContent = formatMoney(custo);
+        el('rLucro').textContent = formatMoney(lucroLiquido);
+      }
 
-        function mostrarErro() {
-            loginError.style.display = 'block';
-            senhaInput.style.borderColor = 'var(--sh-red)';
-            senhaInput.style.boxShadow = '0 0 0 4px rgba(239,68,68,0.2)';
-            setTimeout(() => {
-                loginError.style.display = 'none';
-                senhaInput.style.borderColor = 'rgba(255,87,34,0.3)';
-                senhaInput.style.boxShadow = 'none';
-                senhaInput.value = '';
-                loginBtn.disabled = true;
-            }, 2000);
+      function trocarModo(novoModo) {
+        modoAtual = novoModo;
+        if (novoModo === 'preco') {
+          el('btnModoPreco').classList.add('active');
+          el('btnModoLiquido').classList.remove('active');
+          el('campoLucroDesejado').style.display = 'block';
+          el('campoPrecoAtual').style.display = 'none';
+        } else {
+          el('btnModoPreco').classList.remove('active');
+          el('btnModoLiquido').classList.add('active');
+          el('campoLucroDesejado').style.display = 'none';
+          el('campoPrecoAtual').style.display = 'block';
         }
+        calcular();
+      }
 
-        function liberarAcesso() {
-            localStorage.setItem('sh_calculadora_liberada', Date.now().toString());
-            loginScreen.style.opacity = '0';
-            loginScreen.style.transform = 'scale(0.9)';
-            loginScreen.style.pointerEvents = 'none';
-            body.classList.remove('locked');
-            appContent.classList.add('unlocked');
-            setTimeout(() => {
-                loginScreen.style.display = 'none';
-            }, 400);
-            setTimeout(setupCalculadora, 500);
-        }
+      ['tipoComissao','taxaFixa','imposto','ads','custo','lucroDesejado','precoAtual'].forEach(id => {
+        const node = el(id);
+        if (!node) return;
+        node.addEventListener('input', calcular);
+        node.addEventListener('change', calcular);
+      });
 
-        // CÓDIGO DA CALCULADORA SHOPEE
-        function setupCalculadora() {
-            let modoAtual = 'preco'; // preco | liquido
+      el('btnModoPreco').addEventListener('click', () => trocarModo('preco'));
+      el('btnModoLiquido').addEventListener('click', () => trocarModo('liquido'));
 
-            const el = id => document.getElementById(id);
-            function formatMoney(v) {
-                if (isNaN(v) || !isFinite(v)) v = 0;
-                return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            }
-
-            function calcular() {
-                const comissao = parseFloat(el('tipoComissao').value);
-                const taxaFixa = parseFloat(el('taxaFixa').value) || 0;
-                const impostoPerc = parseFloat(el('imposto').value) / 100 || 0;
-                const adsPerc = parseFloat(el('ads').value) / 100 || 0;
-                const custo = parseFloat(el('custo').value) || 0;
-
-                let precoVenda = 0;
-                let lucroLiquido = 0;
-                let labelText = '';
-
-                if (modoAtual === 'preco') {
-                    const lucroDesejado = parseFloat(el('lucroDesejado').value) || 0;
-                    const somaPerc = comissao + impostoPerc + adsPerc;
-                    const divisor = 1 - somaPerc;
-                    if (divisor > 0) {
-                        precoVenda = (custo + lucroDesejado + taxaFixa) / divisor;
-                    }
-                    lucroLiquido = lucroDesejado;
-                    labelText = 'Preço sugerido (lucro desejado):';
-                } else {
-                    precoVenda = parseFloat(el('precoAtual').value) || 0;
-                    const valComissao = precoVenda * comissao;
-                    const valImposto = precoVenda * impostoPerc;
-                    const valAds = precoVenda * adsPerc;
-                    lucroLiquido = precoVenda - (valComissao + valImposto + valAds + taxaFixa + custo);
-                    labelText = 'Lucro líquido (preço atual):';
-                }
-
-                const valComissao = precoVenda * comissao;
-                const valImposto = precoVenda * impostoPerc;
-                const valAds = precoVenda * adsPerc;
-
-                el('labelPrincipal').textContent = labelText;
-                el('valorPrincipal').textContent = formatMoney(modoAtual === 'preco' ? precoVenda : lucroLiquido);
-
-                el('rPreco').textContent = formatMoney(precoVenda);
-                el('rComissao').textContent = formatMoney(valComissao);
-                el('rTaxa').textContent = formatMoney(taxaFixa);
-                el('rImposto').textContent = formatMoney(valImposto);
-                el('rAds').textContent = formatMoney(valAds);
-                el('rCusto').textContent = formatMoney(custo);
-                el('rLucro').textContent = formatMoney(lucroLiquido);
-            }
-
-            function trocarModo(novoModo) {
-                modoAtual = novoModo;
-                if (novoModo === 'preco') {
-                    el('btnModoPreco').classList.add('active');
-                    el('btnModoLiquido').classList.remove('active');
-                    el('campoLucroDesejado').style.display = 'block';
-                    el('campoPrecoAtual').style.display = 'none';
-                } else {
-                    el('btnModoPreco').classList.remove('active');
-                    el('btnModoLiquido').classList.add('active');
-                    el('campoLucroDesejado').style.display = 'none';
-                    el('campoPrecoAtual').style.display = 'block';
-                }
-                calcular();
-            }
-
-            // EVENTOS
-            ['tipoComissao','taxaFixa','imposto','ads','custo','lucroDesejado','precoAtual'].forEach(id => {
-                el(id).addEventListener('input', calcular);
-            });
-
-            el('btnModoPreco').addEventListener('click', () => trocarModo('preco'));
-            el('btnModoLiquido').addEventListener('click', () => trocarModo('liquido'));
-
-            calcular(); // Inicial
-        }
-    </script>
+      calcular();
+    }
+  </script>
 </body>
 </html>
